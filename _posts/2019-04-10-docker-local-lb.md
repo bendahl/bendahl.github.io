@@ -1,0 +1,12 @@
+---
+layout: post
+title: Local load balancing tests using Docker
+---
+
+Just recently I needed to test a service setup comprised of multiple service instances behind a load balancer doing round robin. Albeit being a fairly standard setup there were a few things to take care of and test, due to the stateful nature of the service. So I went ahead and simply used Docker to do the heavy lifting for me. 
+
+One of the cool things about Docker is that it is possible to create your own software defined networks locally and attach a number of containers to those networks. Once attached to the network, the containers will be able to communicate, but will not be exposed to the host network. Using this knowledge it's no problem to spin up two instances of the same service in an isolated network, both listening on the same port. This in itself is not terribly useful for our scenario, but a first step. All that's needed now is an ingress node that is connected to the host network as well as to the newly created network with our two service instances. This node can then be used to forward incoming network traffic. To do so, we will need a service actually doing this forwarding for us. Once again Docker has us covered: There are numerous solutions out there and many of them offer ready to use Docker images on Docker Hub. I decided to go with NGINX, as it is really straight forward to set up for this kind of task. 
+
+So now we've got a network, two services and an ingress node, but wouldn't it be cool to simply describe this whole setup as code somehow? Good news: There's Docker Compose. A single yaml file will do to describe the above mentioned setup and get you up and running in no time. Want to try this yourself? Simply take a look at [this example Github repo](https://github.com/bendahl/lb-example) that I created as a demo. It contains the whole setup, including a little demo service, that will echo it's current host name. This way it is possible to tell whether the load balancer is doing its job. The repo also contains a little shell script that will build everything for you. After a successful build simply enter "docker-compose up" and watch the magic happen! 
+
+By the way, I'm aware that the above setup could have been tested using two service instances listening on different ports and a locally installed NGINX, but defining this test setup as code makes it easier for others to reproduce and reuse. Also, "installing" services via Docker doesn't require me to tamper with my host setup, which I like.
